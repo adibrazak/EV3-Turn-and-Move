@@ -1,0 +1,270 @@
+#include <ev3.h>
+#include <math.h>
+#include <stdio.h>
+
+//rotate factor variable, can be change to finetune EV3 rotation accuracy
+float rf =2.75;
+
+//move factor variable, can be change to finetune EV3 movement accuracy
+float mf =20.90;
+
+//declare counter
+int i;
+int moveSetNum=1;
+
+//declare user input
+int a1, a2, a3, d1, d2, d3;
+
+//declare motor rotation angle
+int r;
+char str[20];
+
+//home screen
+void homescreen()
+{
+
+	i=1;
+	LcdClean();
+	LcdTextf(1, 60, 15, "GROUP B");
+	Wait(50);
+	LcdTextf(1, 35, 38, "Please give 3");
+	Wait(50);
+	LcdTextf(1, 27, 60, "Angle & Distance");
+	Wait(50);
+
+	//keep looping if the user did not pressed center button
+	//blink2 effect
+	while(ButtonIsDown(BTNCENTER)==0)
+	{
+		LcdTextf(1, 35, 85, "Push to begin");
+		if(i>8)
+		{
+			if(i==16) i=1;
+			LcdTextf(1, 35, 85, "                                     ");
+		}
+	Wait(50);
+	i++;
+}
+
+LcdClean();
+//instruction display for user
+LcdTextf(1, 29, 27, "Press Up Btn");
+LcdTextf(1, 40, 47, "To add value");
+LcdTextf(1, 29, 72, "Press Down Btn");
+LcdTextf(1, 40, 92, "To reduce value");
+Wait(3000);
+}
+
+
+//Display movement set number
+void showMoveSet(moveSetNum)
+{
+	if(moveSetNum==1||moveSetNum==2)
+		{
+			LcdTextf(1, 30, 10, "Movement Set 1");
+		}
+	else if(moveSetNum==3||moveSetNum==4)
+		{
+			LcdTextf(1, 30, 10, "Movement Set 2");
+		}
+	else if(moveSetNum==5||moveSetNum==6)
+		{
+			LcdTextf(1, 30, 10, "Movement Set 3");
+		}
+}
+
+//getting input from user screen
+
+//receiving rotation value event
+int angle()
+{
+	int userAngle=0;
+
+	while(1){
+
+		showMoveSet(moveSetNum);
+
+		if(ButtonIsDown(BTNUP) == 1)
+		{
+			userAngle=userAngle+5;
+			while(ButtonIsDown(BTNUP) == 1)
+			{
+				userAngle = userAngle;
+			}
+		}
+		else if(ButtonIsDown(BTNDOWN) == 1)
+		{
+			userAngle=userAngle-5;
+			while(ButtonIsDown(BTNDOWN) == 1)
+			{
+				userAngle = userAngle;
+			}
+		}
+
+LcdClean();
+showMoveSet(moveSetNum);
+sprintf(str,"Angle     : %d",userAngle);
+LcdTextf(1, 30, 60, str);
+
+	if(ButtonIsDown(BTNCENTER) == 1)
+	 {
+	  break;
+	 }
+			}
+
+moveSetNum++;
+return userAngle;
+}
+
+//receiving distance value event
+int distance()
+{
+	int userDistance=0;
+
+	while(1)
+	{
+		showMoveSet(moveSetNum);
+
+		//Display movement set number
+				if(moveSetNum==1||moveSetNum==2)
+				{
+					LcdTextf(1, 30, 10, "Movement Set 1");
+				}else if(moveSetNum==3||moveSetNum==4)
+				{
+					LcdTextf(1, 30, 10, "Movement Set 2");
+				}else if(moveSetNum==5||moveSetNum==6)
+				{
+					LcdTextf(1, 30, 10, "Movement Set 3");
+				}
+
+		if(ButtonIsDown(BTNUP) == 1)
+		{
+			userDistance=userDistance+5;
+			while(ButtonIsDown(BTNUP) == 1)
+			{
+				userDistance = userDistance;
+			}
+		}
+		else if(ButtonIsDown(BTNDOWN) == 1)
+		{
+			userDistance=userDistance-5;
+			while(ButtonIsDown(BTNDOWN) == 1)
+			{
+				userDistance = userDistance;
+			}
+		}
+
+LcdClean();
+showMoveSet(moveSetNum);
+sprintf(str,"Distance :%d",userDistance);
+LcdTextf(1, 30, 60, str);
+
+	if(ButtonIsDown(BTNCENTER) == 1)
+	{
+		break;
+	}
+	}
+
+moveSetNum++;
+return userDistance;
+}
+
+
+//function to rotate robot in place
+void rotateInPlace(int a)
+{
+
+	if (a<0)
+	{
+		r = a*rf; //multiply rotation factor
+		RotateMotorEx(OUT_BC, 90, r, 200 , true, true);
+		Wait(1000);
+	}
+	else
+	{
+		r = a*rf; //multiply rotation factor
+		RotateMotorEx(OUT_BC, -90, r, 200 , true, true);
+		Wait(1000);
+	}
+}
+
+
+
+//function to move robot
+void moveForward(int d)
+{
+
+	if (d<0)
+	{
+		r = d*mf; //multiply moving factor
+		RotateMotorEx(OUT_BC, -90, r, 0 , true, true);
+		Wait(1000);
+	}
+	else
+	{
+		r = d*mf; //multiply moving factor
+		RotateMotorEx(OUT_BC, 90, r, 0 , true, true);
+		Wait(1000);
+	}
+
+}
+
+
+int main()
+{
+InitEV3();
+
+//get user input
+homescreen();
+
+a1=angle();
+Wait(500);
+d1=distance();
+Wait(500);
+
+a2=angle();
+Wait(500);
+d2=distance();
+Wait(500);
+
+a3=angle();
+Wait(500);
+d3=distance();
+Wait(500);
+
+
+LcdClean();
+
+//display all input value
+sprintf(str,"Angle 1   : %d", a1);
+LcdTextf(1, 30, 20, str);
+Wait(500);
+sprintf(str,"Distance 1: %d", d1);
+LcdTextf(1, 30, 35, str);
+Wait(500);
+
+sprintf(str,"Angle 2   : %d", a2);
+LcdTextf(1, 30, 50, str);
+Wait(500);
+sprintf(str,"Distance 2: %d", d2);
+LcdTextf(1, 30, 65, str);
+Wait(500);
+
+sprintf(str,"Angle 3   : %d", a3);
+LcdTextf(1, 30, 80, str);
+Wait(500);
+sprintf(str,"Distance 3: %d", d3);
+LcdTextf(1, 30, 95, str);
+Wait(3000);
+
+//robot action
+rotateInPlace(a1);
+moveForward(d1);
+rotateInPlace(a2);
+moveForward(d2);
+rotateInPlace(a3);
+moveForward(d3);
+
+FreeEV3();
+return 0;
+}
